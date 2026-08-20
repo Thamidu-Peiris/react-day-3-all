@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import DeleteConfirm from "../../components/ui/DeleteConfirm"
 import CreateStudentModal from "./CreateStudentModal"
 import EditStudentModal from "./EditStudentModal"
@@ -10,7 +11,7 @@ import Avatar from "../../components/ui/Avatar"
 import StatusBadge from "../../components/ui/StatusBadge"
 import { ClipLoader } from "react-spinners"
 
-import axios from "axios"
+import { getStudents_API, deleteStudents_API } from "../../services/student.api"
 import toast from "react-hot-toast"
 
 const BRANCHES = [
@@ -32,45 +33,44 @@ export default  function Students() {
   const [showCreate, setShowCreate] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
   const [editStudent, setEditStudent] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [apiLoading, setApiLoading] = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
 
-  const fetchStudents = async (showLoader = false) => {
+  const handleGetStudents = async () => {
     try {
-      if (showLoader) setLoading(true)
-      const res = await axios.get("http://localhost:9000/student");
+      setFetchLoading(true)
+      const res = await getStudents_API()
 
       if (res?.data?.success) {
-        setStudents(res.data.data || []);
+        setStudents(res?.data?.data || [])
       } else {
-        toast.error(res?.data?.message || "Failed to fetch students");
+        toast.error(res?.data?.message || "fetch failed")
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to fetch students");
+      console.error(error)
+      toast.error('An unexpected error')
     } finally {
-      if (showLoader) setLoading(false)
+      setFetchLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchStudents(true);
-  }, []);
+    handleGetStudents()
+  }, [])
 
-  const handleCreate = async (value) => {
+  const handleDelete = async (id) => {
     try {
       setApiLoading(true)
-      const res = await axios.post('http://localhost:9000/student', value, 
-        {validateStatus: (status)=> status >= 200 & status <=499});
+      const res = await deleteStudents_API(id)
 
-      if (res?.data?.success){
-        toast.success(res?.data?.message);
-        setShowCreate(false);
-        await fetchStudents();
-      }else{
-        toast.error(res?.data?.message || "create failed");
+      if (res?.data?.success) {
+        toast.success(res?.data?.message)
+        setStudents(students.filter(s => s.id !== id))
+        setDeleteId(null)
+      } else {
+        toast.error(res?.data?.message || "delete failed")
       }
-      } catch (error) {
+    } catch (error) {
       console.error(error)
       toast.error('An unexpected error')
     } finally {
@@ -78,103 +78,36 @@ export default  function Students() {
     }
   }
 
-  const handleEdit = async (value) => {
-    try {
-      setApiLoading(true)
-      const res = await axios.put(`http://localhost:9000/student/${value.id}`, {
-        name: value.name,
-        age: String(value.age),
-        email: value.email,
-        branchId: value.branchId,
-        status: value.status,
-        paymentStatus: value.paymentStatus,
-        enrollDate: value.enrollDate,
-      }, { validateStatus: (status) => status >= 200 && status <= 499 });
 
-      if (res?.data?.success) {
-        toast.success(res?.data?.message);
-        setEditStudent(null);
-        await fetchStudents();
-      } else {
-        const errorMsg = res?.data?.errors?.map((e) => e.message).join(", ") || res?.data?.message || "Update failed";
-        toast.error(errorMsg);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("An unexpected error");
-    } finally {
-      setApiLoading(false);
-    }
-  }
-
-  const handleDelete = async (id) => {
-    try {
-      setApiLoading(true)
-      const res = await axios.delete(`http://localhost:9000/student/${id}`, {
-        validateStatus: (status) => status >= 200 && status <= 499,
-      });
-
-      if (res?.data?.success) {
-        toast.success(res?.data?.message);
-        setDeleteId(null);
-        await fetchStudents();
-      } else {
-        toast.error(res?.data?.message || "Delete failed");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("An unexpected error");
-    } finally {
-      setApiLoading(false);
-    }
-  }
-  
-
-
-
-  const isLoading = loading
 
   return (
     <div className="p-6 space-y-5">
-      <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm ${!isLoading ? "hidden" : ""}`}>
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-white/8 bg-[#111318] px-8 py-6 shadow-xl">
-          <ClipLoader
-            color="#6366f1"
-            loading={isLoading}
-            cssOverride={{ display: "block", margin: "0 auto" }}
-            size={45}
-            aria-label="Loading Spinner"
-            data-testid="loader"
-          />
-          <p className="text-sm text-zinc-400">
-            {loading ? "Loading students..." : "Please wait..."}
-          </p>
-        </div>
-      </div>
       {showCreate && (
-        <CreateStudentModal apiLoading={apiLoading}  onClose={() => setShowCreate(false)} onSave={(value)=>handleCreate(value)} />
+        <CreateStudentModal onClose={() => setShowCreate(false)} handleGetStudents={handleGetStudents} />
       )}
       {deleteId && (
-        <DeleteConfirm 
+        <DeleteConfirm
+          apiLoading={apiLoading}
           name={students.find(s => s.id === deleteId)?.name ?? ''}
           onClose={() => setDeleteId(null)}
           onDelete={() => handleDelete(deleteId)}
-          apiLoading={apiLoading}
         />
       )}
       {editStudent && (
         <EditStudentModal
+          setStudents={setStudents}
+          students={students}
           student={editStudent}
           onClose={() => setEditStudent(null)}
-          onSave={(value) => handleEdit(value)}
-          apiLoading={apiLoading}
         />
       )}
 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-zinc-100">Student Management</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">{students.length} students found</p>
+          <p className="text-sm text-zinc-500 mt-0.5">
+            {fetchLoading ? 'Loading students...' : `${students.length} students found`}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Btn variant="secondary" size="sm">{Icons.export} Export</Btn>
@@ -182,7 +115,7 @@ export default  function Students() {
         </div>
       </div>
 
-      {/* Filters --*/}
+      {/* Filters */}
       <Card className="p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-48">
@@ -203,8 +136,14 @@ export default  function Students() {
         </div>
       </Card>
 
-      {/* Table-- */}
+      {/* Table */}
       <Card className="overflow-hidden">
+        {fetchLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <ClipLoader color="#6366f1" size={36} />
+            <p className="text-sm text-zinc-500">Loading students...</p>
+          </div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -215,13 +154,6 @@ export default  function Students() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/4">
-              {!loading && students.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-zinc-500">
-                    No students found
-                  </td>
-                </tr>
-              )}
               {students.map(s => (
                 <tr key={s.id} className="hover:bg-white/2 transition group">
                   <td className="px-4 py-3">
@@ -242,14 +174,13 @@ export default  function Students() {
                   <td className="px-4 py-3"><StatusBadge status={s.paymentStatus} /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
-                      <button 
-                        className="p-1.5 text-zinc-600 hover:text-indigo-400 hover:bg-indigo-500/10 rounded transition" title="View">
+                      <Link
+                        to={`/student/${s.id}`}
+                        className="p-1.5 text-zinc-600 hover:text-indigo-400 hover:bg-indigo-500/10 rounded transition"
+                        title="View"
+                      >
                         {Icons.eye}
-                      </button>
-                      <button onClick={() => setEditStudent(s)}
-                        className="p-1.5 text-zinc-600 hover:text-zinc-300 hover:bg-white/8 rounded transition" title="Edit">
-                        {Icons.edit}
-                      </button>
+                      </Link>
                       <button onClick={() => setDeleteId(s.id)}
                         className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded transition" title="Delete">
                         {Icons.trash}
@@ -261,8 +192,7 @@ export default  function Students() {
             </tbody>
           </table>
         </div>
-
-    
+        )}
       </Card>
     </div>
   )

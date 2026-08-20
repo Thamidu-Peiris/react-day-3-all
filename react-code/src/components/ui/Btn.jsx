@@ -1,5 +1,3 @@
-import { ClipLoader } from "react-spinners"
-
 export default function Btn({loading, variant = 'primary', size = 'sm', onClick, children, className = '', disabled = false }) {
   const v = {
     primary: 'bg-indigo-600 hover:bg-indigo-500 text-white',
@@ -8,26 +6,14 @@ export default function Btn({loading, variant = 'primary', size = 'sm', onClick,
     ghost: 'hover:bg-white/6 text-zinc-400 hover:text-zinc-200',
   }[variant]
   const s = size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'
-  const loaderColor = variant === 'secondary' ? '#a1a1aa' : '#ffffff'
-
   return (
     <button
       onClick={onClick}
       disabled={loading || disabled}
       className={`${v} ${s} rounded-md font-medium flex items-center gap-1.5 transition-colors disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed ${className}`}
     >
-      {loading ? (
-        <>
-          <ClipLoader
-            color={loaderColor}
-            loading={loading}
-            cssOverride={{ display: "inline-block" }}
-            size={14}
-            aria-label="Loading Spinner"
-          />
-          Loading...
-        </>
-      ) : children}
+    {loading? "Loading ...": children }
+      
     </button>
   )
 }

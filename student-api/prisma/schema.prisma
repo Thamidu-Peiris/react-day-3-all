@@ -24,3 +24,13 @@ model Student {
   paymentStatus String @default("pending")
   enrollDate String?
 }
+
+model Branch {
+  id String @id
+  name String
+  city String
+  studentCount Int
+  activeCount Int
+  manager String
+  status String
+}

@@ -1,27 +1,28 @@
-import { z } from "zod";
+import { z } from "zod"
 
 const createStudentSchema = z.object({
     name: z
         .string()
         .min(2, "Full name too short")
-        .max(50, "Full name too long")
+        .max(100, "Full name too long")
         .regex(/^[A-Za-z\s'-]+$/, "Invalid full name"),
-
-    age: z
-        .string()
-        .min(1, "Age is required")
-        .regex(/^\d+$/, "Age must be a number"),
 
     email: z
         .string()
         .email("Invalid email format")
         .max(255),
 
+    age: z
+        .number()
+        .int("Age must be a whole number")
+        .min(16, "Age must be at least 16")
+        .max(100, "Age must be at most 100"),
+
     phone: z
         .string()
         .min(10, "Phone number too short")
-        .max(15, "Phone number too long")
-        .regex(/^[0-9+\-\s()]+$/, "Invalid phone number"),
+        .max(20, "Phone number too long")
+        .regex(/^[\d\s+()-]+$/, "Invalid phone number"),
 
     course: z
         .string()
@@ -31,6 +32,6 @@ const createStudentSchema = z.object({
     branchId: z
         .string()
         .min(1, "Branch is required"),
-});
+})
 
-export default createStudentSchema;
+export default createStudentSchema
