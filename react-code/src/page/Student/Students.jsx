@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import DeleteConfirm from "../../components/ui/DeleteConfirm"
 import CreateStudentModal from "./CreateStudentModal"
-import EditStudentModal from "./EditStudentModal"
 import Btn from "../../components/ui/Btn"
 import Icons from "../../components/ui/Icons"
 import Card from "../../components/ui/Card"
@@ -10,29 +9,20 @@ import Select from "../../components/ui/Select"
 import Avatar from "../../components/ui/Avatar"
 import StatusBadge from "../../components/ui/StatusBadge"
 import { ClipLoader } from "react-spinners"
-
 import { getStudents_API, deleteStudents_API } from "../../services/student.api"
+import { getBranches_API } from "../../services/branch.api"
 import toast from "react-hot-toast"
-
-const BRANCHES = [
-  { id: 'b1', name: 'Downtown Campus', city: 'New York', studentCount: 142, activeCount: 128, manager: 'Sarah Chen', status: 'active' },
-  { id: 'b2', name: 'Westside Center', city: 'Los Angeles', studentCount: 98, activeCount: 84, manager: 'Marcus Rivera', status: 'active' },
-  { id: 'b3', name: 'Northgate Branch', city: 'Chicago', studentCount: 67, activeCount: 61, manager: 'Priya Patel', status: 'active' },
-  { id: 'b4', name: 'Eastpark Hub', city: 'Houston', studentCount: 54, activeCount: 39, manager: 'James O\'Brien', status: 'active' },
-  { id: 'b5', name: 'Southside Studio', city: 'Phoenix', studentCount: 33, activeCount: 20, manager: 'Aisha Williams', status: 'inactive' },
-  { id: 'b6', name: 'Harbor View', city: 'Seattle', studentCount: 78, activeCount: 71, manager: 'Tom Nakamura', status: 'active' },
-]
 
 
 export default  function Students() {
   const [students, setStudents] = useState([])
+  const [branches, setBranches] = useState([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [branchFilter, setBranchFilter] = useState('all')
 
   const [showCreate, setShowCreate] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
-  const [editStudent, setEditStudent] = useState(null)
   const [apiLoading, setApiLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
 
@@ -56,7 +46,19 @@ export default  function Students() {
 
   useEffect(() => {
     handleGetStudents()
+    handleGetBranches()
   }, [])
+
+  const handleGetBranches = async () => {
+    try {
+      const res = await getBranches_API()
+      if (res?.data?.success) {
+        setBranches(res?.data?.data || [])
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   const handleDelete = async (id) => {
     try {
@@ -93,15 +95,6 @@ export default  function Students() {
           onDelete={() => handleDelete(deleteId)}
         />
       )}
-      {editStudent && (
-        <EditStudentModal
-          setStudents={setStudents}
-          students={students}
-          student={editStudent}
-          onClose={() => setEditStudent(null)}
-        />
-      )}
-
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-zinc-100">Student Management</h1>
@@ -132,7 +125,7 @@ export default  function Students() {
           <Select value={statusFilter} onChange={v => { setStatusFilter(v);  }}
             options={[{ label: 'All Status', value: 'all' }, { label: 'Active', value: 'active' }, { label: 'Inactive', value: 'inactive' }]} />
           <Select value={branchFilter} onChange={v => { setBranchFilter(v);  }}
-            options={[{ label: 'All Branches', value: 'all' }, ...BRANCHES.map(b => ({ label: b.name, value: b.id }))]} />
+            options={[{ label: 'All Branches', value: 'all' }, ...branches.map(b => ({ label: b.name, value: b.id }))]} />
         </div>
       </Card>
 

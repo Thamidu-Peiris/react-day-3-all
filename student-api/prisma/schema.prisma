@@ -19,18 +19,21 @@ model Student {
   email String?
   phone String @unique
   course String?
-  Branch String @map("branch")
-  status String @default("active")
-  paymentStatus String @default("pending")
-  enrollDate String?
+  branchId  String?
+  branch Branch? @relation(fields:[branchId], references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Branch {
-  id String @id
-  name String
-  city String
+  id           String @id
+  name         String
+  city         String
   studentCount Int
-  activeCount Int
-  manager String
-  status String
+  activeCount  Int
+  manager      String
+  status       String
+  Student Student[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
