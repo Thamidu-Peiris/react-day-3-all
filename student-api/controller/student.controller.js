@@ -48,11 +48,11 @@ export const CreateStudent = async (req, res) => {
 
         const errors = {}
 
-        if (existingStudents.some((student) => student.email === email)) {
+        if (existingStudents.some((student) => student.email == email)) {
             errors.email = "email already exists"
         }
 
-        if (existingStudents.some((student) => student.phone === phone)) {
+        if (existingStudents.some((student) => student.phone == phone)) {
             errors.phone = "phone number already exists"
         }
 
@@ -104,7 +104,7 @@ export const CreateStudent = async (req, res) => {
     } catch (error) {
         console.error(error);
 
-        if (error.code === "P2002") {
+        if (error.code == "P2002") {
             return res.status(409).json({
                 success: false,
                 message: "Phone number already exists",
