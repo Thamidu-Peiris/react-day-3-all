@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { ErrorHandler } from "../middlewares/Errorhandler.js";
 
 const formatBranch = (branch) => ({
     id: branch.id,
@@ -61,10 +62,7 @@ export const CreateBranch = async (req, res) => {
         });
 
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            error: "Internal Server Error!"
-        })
+        ErrorHandler(error,req,res)
     }
 };
 
@@ -103,12 +101,7 @@ export const GetBranches = async (req, res) => {
         })
 
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error.message,
-        });
+        ErrorHandler(error,req,res)
     }
 }
 
@@ -207,9 +200,6 @@ export const DeleteBranch = async (req, res) => {
             message: "branch deleted successfully"
         })
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            error: "Internal Server Error!"
-        })
+        ErrorHandler(error,req,res)
     }
 }

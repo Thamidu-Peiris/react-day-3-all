@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcrypt";
+import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
 
 export const AdminLogin = async (req, res) => {
     try {
@@ -55,9 +56,22 @@ export const AdminLogin = async (req, res) => {
             });
         }
 
+        const accessToken = generateAccessToken(admin.id, admin.firstname,admin.email);
+        const refreshToken = generateRefreshToken(admin.id);
+
+        res.cookie('refreshtoken', refreshToken,{
+            httpOnly:true,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 7*24*60*1000,
+    })
+
+        
+
         return res.status(200).json({
             success: true,
             message: "Login success",
+            accessToken:accessToken,
             data: {
                 id: admin.id,
                 firstName: admin.firstName,

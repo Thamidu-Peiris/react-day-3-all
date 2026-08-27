@@ -11,9 +11,9 @@ app.use(cors())
 app.use(express.json())
 
 
-app.use("/student",StudentRoute)
-app.use("/branch", BranchRoute)
-app.use("/admin", AdminRoute)
-app.get("/students", StudentRoute)
+app.use("/api/v1/student",StudentRoute)
+app.use("/api/v1/branch", BranchRoute)
+app.use("/api/v1/admin", AdminRoute)
+app.get("/api/v1/students", StudentRoute)
 
 app.listen(9000, ()=> (console.log('server is running')))

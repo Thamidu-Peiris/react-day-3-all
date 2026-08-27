@@ -33,7 +33,7 @@ export const CreateStudent = async (req, res) => {
     try {
         const { id, name, age, email, phone, course, branchId } = req.body;
 
-        const existingStudents = await prisma.student.findMany({
+        const existingStudents = await prisma.student.findFirst({
             where: {
                 OR: [
                     { email },
@@ -224,10 +224,7 @@ export const UpdateStudent = async (req, res) => {
             })
         })
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            error: "Internal Server Error!"
-        })
+        ErrorHandler(error,req,res)
     }
 }
 
@@ -264,9 +261,6 @@ export const DeleteStudent = async (req, res) => {
             message: "Student deleted successfully"
         })
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            error: "Internal Server Error!"
-        })
+        ErrorHandler(error,req,res)
     }
 }

@@ -4,10 +4,14 @@ import toast from "react-hot-toast"
 import Input from "../components/ui/Input"
 import Btn from "../components/ui/Btn"
 import { adminLogin_API } from "../services/admin.api"
+import { useAuthContext } from "../context/AuthContext"
 
 export default function Login() {
+
+  const { Login } = useAuthContext()
   const navigate = useNavigate()
 
+  const [error, seterror] = useState(false)
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -23,6 +27,7 @@ export default function Login() {
       return
     }
 
+    seterror(false)
     setLoading(true)
 
     try {
@@ -31,14 +36,17 @@ export default function Login() {
         password: form.password,
       })
 
-      if (!res || !res.data?.success) {
+      if (res?.data?.success) {
+        localStorage.setItem("admin", JSON.stringify(res.data.data))
+        toast.success(res.data.message || "Logged in successfully")
+        Login(res.data.accessToken, res.data.data)
+        //navigate("/students")  
+      } else {
         toast.error(res?.data?.message || "Invalid credentials")
-        return
+        seterror(res.data.message)
+
       }
 
-      localStorage.setItem("admin", JSON.stringify(res.data.data))
-      toast.success(res.data.message || "Logged in successfully")
-      navigate("/students")
     } catch (error) {
       console.error("Login error:", error)
       toast.error("Failed to login, please try again")
@@ -69,6 +77,7 @@ export default function Login() {
         <div className="bg-[#111318] border border-white/6 rounded-xl p-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
+            {error && <p className="text-xs text-red-500">{error}</p>}
               <label className="text-xs text-zinc-500 mb-1 block">Email</label>
               <Input
                 type="email"
