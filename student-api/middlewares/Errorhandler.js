@@ -2,39 +2,7 @@ import logger from "../utils/logger.js";
 
 export const ErrorHandler = async (err, req, res) => {
 
-    console.log(err)
-
-
-    // Also log to console for development
-
-    // Log error details with winston logger
-    const errorDetails = {
-        timestamp: new Date().toISOString(),
-        method: req?.method,
-        url: req?.originalUrl,
-        userAgent: req?.get('User-Agent'),
-        ip: req?.ip || req?.connection?.remoteAddress,
-        body: req?.body,
-        params: req?.params,
-        query: req?.query,
-        error: {
-            name: err?.name,
-            message: err?.message,
-            stack: err?.stack,
-            status: err?.status || err?.statusCode
-        }
-    };
-
-    // Log to error.log file only if it's a server error (500+)
-    if (err.status >= 500 || err.statusCode >= 500 || !err.status) {
-        logger.error('Server Error', errorDetails);
-    } else {
-        logger.info('Client Error', errorDetails);
-    }
-
-
-
-    // Define client errors (safe to expose to frontend)
+console.log(err.name)
     const clientErrors = [
         'ValidationError',
         'JsonWebTokenError',
@@ -66,14 +34,16 @@ export const ErrorHandler = async (err, req, res) => {
     if (err.name === 'JsonWebTokenError') {
         return res.status(401).json({
             message: 'Invalid token - please login again',
-            code: 'INVALID_TOKEN'
+            code: 'INVALID_TOKEN',
+            unauthorized: "Unauthorized - No Token"
         });
     }
 
     if (err.name === 'TokenExpiredError') {
         return res.status(401).json({
             message: 'Token expired - please login again',
-            code: 'TOKEN_EXPIRED'
+            code: 'TOKEN_EXPIRED',
+            unauthorized: "Unauthorized - No Token"
         });
     }
 
@@ -81,7 +51,8 @@ export const ErrorHandler = async (err, req, res) => {
     if (err.status === 401 || err.statusCode === 401) {
         return res.status(401).json({
             message: err.message || 'Authentication required - please login again',
-            code: err.code || 'AUTH_REQUIRED'
+            code: err.code || 'AUTH_REQUIRED',
+            unauthorized: "Unauthorized - No Token"
         });
     }
 
@@ -100,18 +71,41 @@ export const ErrorHandler = async (err, req, res) => {
         });
     }
 
+
+     const errorDetails = {
+        timestamp: new Date().toISOString(),
+        method: req?.method,
+        url: req?.originalUrl,
+        userAgent: req?.get('User-Agent'),
+        ip: req?.ip || req?.connection?.remoteAddress,
+        body: req?.body,
+        params: req?.params,
+        query: req?.query,
+        error: {
+            name: err?.name,
+            message: err?.message,
+            stack: err?.stack,
+            status: err?.status || err?.statusCode
+        }
+    };
+        logger.error('Server Error', errorDetails);
+   
     // Handle server errors (hide details from frontend)
     if (serverErrors.includes(err.name) || err.status >= 500 || err.statusCode >= 500 || !err.status) {
         return res.status(500).json({
-            success:false,
+            success: false,
             message: 'An unexpected error occurred. Please try again later.',
             code: 'INTERNAL_SERVER_ERROR'
         });
     }
 
-    // Default fallback (treat as server error)
-  return  res.status(500).json({
-        success:false,
+
+
+   
+
+
+    return res.status(500).json({
+        success: false,
         message: 'An unexpected error occurred. Please try again later.',
         code: 'UNKNOWN_ERROR'
     });

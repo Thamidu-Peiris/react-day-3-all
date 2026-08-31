@@ -26,8 +26,16 @@ export const AuthProvider = ({ children }) => {
 
     }
 
+    const Logout = () => {
+        localStorage.removeItem("accessToken")
+        localStorage.removeItem("user")
+        setuser(false)
+        window.location.reload(true)
+    }
+
+
     return (
-        <AuthContext.Provider value={{ user, Login }}>
+        <AuthContext.Provider value={{ user, Login, Logout }}>
             {children}
         </AuthContext.Provider>
     )
