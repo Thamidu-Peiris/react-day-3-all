@@ -1,6 +1,10 @@
 import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
+import jwt from "jsonwebtoken";
+
+
+
 
 export const AdminLogin = async (req, res) => {
     try {
@@ -87,3 +91,85 @@ export const AdminLogin = async (req, res) => {
         });
     }
 };
+
+const Logout = async (res) => {
+    res.clearCookie('refreshtoken', {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+            });
+            return res.status(200).json({
+                success: true,
+                message: "Logout successfully",
+            });
+}
+
+export const verifyRefreshToken = async (req, res) => {
+    try {
+        const token = req.cookies.refreshtoken;
+        if (!token) {
+            Logout(res)
+
+            
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized 1",
+            });
+        }
+
+        const decode = jwt.verify(token, process.env.JWT_REFRESH_SECRET)
+
+        const id = decode.id;
+
+        if (!id) {
+            Logout(res)
+            
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        }
+
+        const user = await prisma.admin.findUnique({
+            where: {
+                id: id,
+            },
+        });
+
+        if (!user) {
+            Logout(res)
+            
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized",
+            })
+        }
+
+
+
+        const accessToken = generateAccessToken(user.id, user.firstname, user.email);
+
+        return res.status(200).json({
+            success: true,
+            accessToken: accessToken,
+        });
+
+        const userOBJ = {
+            id:user.id,
+            firstName:user.firstName,
+            lastName:user.lastName,
+            email:user.email
+        }
+
+        return res.status(200).json({
+            success: true,
+            accessToken: accessToken,
+            user:userOBJ
+        });
+
+        
+    } catch (error) {
+        Logout(res)
+        
+    }
+}
