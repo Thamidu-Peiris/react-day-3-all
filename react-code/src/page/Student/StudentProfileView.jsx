@@ -9,6 +9,7 @@ import Btn from "../../components/ui/Btn"
 import { ClipLoader } from "react-spinners"
 import { getStudent_API } from "../../services/student.api"
 import toast from "react-hot-toast"
+import FileUploader from "./UploadFile"
 
 export default function StudentProfileView() {
   const { s_id } = useParams()
@@ -37,8 +38,9 @@ export default function StudentProfileView() {
   }
 
   useEffect(() => {
-    handleGetStudent()
+   handleGetStudent()
   }, [s_id])
+
 
   if (fetchLoading) {
     return (
@@ -59,17 +61,6 @@ export default function StudentProfileView() {
       </div>
     )
   }
-
-  const attendance = [
-    { id: 1, date: '2026-08-20', on: '09:00 AM', off: '05:30 PM' },
-    { id: 2, date: '2026-08-19', on: '09:05 AM', off: '05:15 PM' },
-    { id: 3, date: '2026-08-18', on: '-', off: '-' },
-    { id: 4, date: '2026-08-17', on: '08:55 AM', off: '05:45 PM' },
-    { id: 5, date: '2026-08-16', on: '09:10 AM', off: '05:20 PM' },
-  ]
-
-  const presentDays = attendance.filter(a => a.on !== '-').length
-
 
   return (
     <div className="p-6 space-y-5">
@@ -95,6 +86,9 @@ export default function StudentProfileView() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="max-h-fit">
+    <FileUploader id={s_id}/>
+      </div>
         <Card className="lg:col-span-2 p-5 space-y-5">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
@@ -122,40 +116,47 @@ export default function StudentProfileView() {
             ].map(f => (
               <div key={f.label}>
                 <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-0.5">{f.label}</div>
-                <div className="text-sm text-zinc-300">{f.value || '-'}</div>
+                <div className="text-sm text-zinc-300">{f.value || '—'}</div>
               </div>
             ))}
           </div>
         </Card>
-
         
       </div>
 
+
       <Card className="overflow-hidden">
-        <div className="px-5 py-4 border-b border-white/5">
+
+      
+
+      
+        <div className="px-4 py-3 border-b border-white/5">
           <h3 className="text-sm font-semibold text-zinc-200">Attendance</h3>
-          <p className="text-xs text-zinc-500 mt-0.5">Check-in (On) and check-out (Off) times</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/5">
-                {['Date', 'On', 'Off'].map(h => (
+                {['Date', 'On Time', 'Off Time'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-[11px] font-medium text-zinc-600 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/4">
-              {attendance.map(row => (
-                <tr key={row.id} className="hover:bg-white/2 transition">
+              {[
+                { date: 'Aug 20, 2026', onTime: '08:55 AM', offTime: '05:02 PM' },
+                { date: 'Aug 19, 2026', onTime: '09:12 AM', offTime: '05:10 PM' },
+                { date: 'Aug 18, 2026', onTime: '08:48 AM', offTime: '04:55 PM' },
+                { date: 'Aug 17, 2026', onTime: '08:48 AM', offTime: '04:55 PM'},
+                { date: 'Aug 16, 2026', onTime: '08:50 AM', offTime: '01:00 PM' },
+              ].map((row) => (
+                <tr key={row.date} className="hover:bg-white/2 transition">
+                  <td className="px-4 py-3 text-sm text-zinc-200">{row.date}</td>
                   <td className="px-4 py-3">
-                    <span className="mono text-xs text-zinc-300">{row.date}</span>
+                    <span className="mono text-xs text-zinc-400">{row.onTime}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="mono text-xs text-emerald-400">{row.on}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="mono text-xs text-amber-400">{row.off}</span>
+                    <span className="mono text-xs text-zinc-400">{row.offTime}</span>
                   </td>
                 </tr>
               ))}
@@ -163,8 +164,6 @@ export default function StudentProfileView() {
           </table>
         </div>
       </Card>
-
-      
     </div>
   )
 }

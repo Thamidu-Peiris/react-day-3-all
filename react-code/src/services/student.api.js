@@ -53,4 +53,15 @@ export const deleteStudents_API = async (id) => {
     }
 }
 
+export const uploadImage_API = async(data, onuploadProgress)=>{
+    try {
+        const response = await api.post(`/student/image`, data,{onuploadProgress})
+        return response
+    } catch (error) {
+        console.log("Error while image upload students :", error)
+        return error.response      
+    }
+
+}
+
 

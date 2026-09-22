@@ -1,4 +1,6 @@
 import { prisma } from "../lib/prisma.js";
+import path from "path";
+import fs from "fs";
 
 
 const formatStudent = (student, overrides = {}) => ({
@@ -262,5 +264,73 @@ export const DeleteStudent = async (req, res) => {
         })
     } catch (error) {
         ErrorHandler(error,req,res)
+    }
+}
+
+export const uploadImage = async (req, res) => {
+    try {
+        const {files} = req.body
+        
+
+        if (!req.files || !req.files.image) {
+            return res.status(400).json({
+              success: false,
+              message: "Image is required",
+            });
+          }
+
+    const image = req.files.image
+
+    const allowedTypes =[
+        "image/jpeg",
+        "image/png",
+    ]
+
+   if (!allowedTypes.includes(image.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        message: "Only JPG and PNG files are allowed",
+      });
+    }
+
+     if (image.size > 5 * 1024 * 1024) {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum file size is 5MB",
+      });
+    }
+
+    const originalName = image.name
+    const extension = path.extname(originalName)
+
+    const imageName = "abcd_"+extension
+
+    const uploadDir = path.join(__dirname,'..','..','uploads',imageName)
+
+    if (!fs.existsSync(path.join(__dirname,'..','..','uploads'))) {
+        fs.mkdirSync(path.join(__dirname,'..','..','uploads'),{recursive:true})
+    }
+
+    image.mv(uploadDir,(error)=>{
+        if (error) {
+            console.log(error);
+        }
+    })
+
+    const url = `/uploads/${imageName}`
+
+    return res.status(200).json({
+        success: true,
+        message: "ok",
+    });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message,
+        });
+        
     }
 }
